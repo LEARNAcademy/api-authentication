@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import './Login.css';
-import AuthService from './AuthenticationService';
+import '../css/Login.css';
+import AuthService from '../services/Authentication';
 
 class Login extends Component {
   constructor(){
