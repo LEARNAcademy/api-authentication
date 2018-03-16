@@ -2,8 +2,16 @@ import React, { Component } from 'react'
 import logo from '../images/logo.svg'
 import '../css/App.css';
 import withAuth from './withAuth'
+import AuthService from '../services/Authentication'
+
+const Auth = new AuthService()
 
 class App extends Component {
+  handleLogout(){
+    Auth.logout()
+    this.props.history.replace('/login');
+  }
+
   render() {
     return (
       <div className="App">
@@ -12,7 +20,7 @@ class App extends Component {
           <h1 className="App-title">Welcome to React</h1>
         </header>
         <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
+          <button type="button" className="form-submit" onClick={this.handleLogout.bind(this)}>Logout</button>
         </p>
       </div>
     )
