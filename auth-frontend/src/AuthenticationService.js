@@ -9,17 +9,19 @@ export default class AuthService {
     }
 
     login(email, password) {
-        // Get a token from api server using the fetch api
-        return this.fetch(`${this.domain}/user_token`, {
-            method: 'POST',
-            body: JSON.stringify({
-                email,
-                password
-            })
-        }).then(res => {
-            this.setToken(res.token) // Setting the token in localStorage
-            return Promise.resolve(res);
+      // Get a token from api server using the fetch api
+      return this.fetch(`${this.domain}/user_token`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          auth: {
+            email,
+            password
+          }
         })
+      }).then(res => {
+        this.setToken(res.jwt) // Setting the token in localStorage
+        return Promise.resolve(res);
+      })
     }
 
     loggedIn() {
@@ -43,8 +45,8 @@ export default class AuthService {
     }
 
     setToken(idToken) {
-        // Saves user token to localStorage
-        localStorage.setItem('id_token', idToken)
+      // Saves user token to localStorage
+      localStorage.setItem('id_token', idToken)
     }
 
     getToken() {
@@ -61,7 +63,6 @@ export default class AuthService {
         // Using jwt-decode npm package to decode the token
         return decode(this.getToken());
     }
-
 
     fetch(url, options) {
         // performs api calls sending the required authentication headers
