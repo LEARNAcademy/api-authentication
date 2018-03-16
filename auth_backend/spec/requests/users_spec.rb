@@ -19,5 +19,14 @@ RSpec.describe "Users", type: :request do
       get user_path(user.id), headers: auth_header
       expect(response).to have_http_status(200)
     end
+
+    it "allows creating a user" do
+      payload = {user: {name: 'Chuck', email: 'chuck@chucker.com', password: 'secret', password_confirmation: 'secret'}}
+      post users_path, params: payload
+      expect(response).to have_http_status(201)
+      json = JSON.parse(response.body)
+      expect(json["user"]["name"]).to eq "Chuck"
+      expect(json.keys).to include "jwt"
+    end
   end
 end
