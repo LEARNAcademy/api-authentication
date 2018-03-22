@@ -1,6 +1,6 @@
 .center{
     font-family: 'Raleway', sans-serif;
-    background-color: #7ac143;
+    background-color: #78C2AD;
     position: absolute;
     height: 100%;
     width: 100%;
@@ -39,7 +39,7 @@
     font-family: 'Raleway', sans-serif;
     height: 35px;
     color: #fff;
-    background-color: #7ac143;
+    background-color: #78C2AD;
     border: none;
     letter-spacing: 0.2rem;
     transition: 0.3s opacity ease;

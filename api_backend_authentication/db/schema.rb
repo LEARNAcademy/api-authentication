@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180317200715) do
+ActiveRecord::Schema.define(version: 20180322191034) do
+
+  create_table "apartments", force: :cascade do |t|
+    t.string "street"
+    t.string "city"
+    t.string "state"
+    t.string "listing_price"
+    t.integer "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_apartments_on_user_id"
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "name"
