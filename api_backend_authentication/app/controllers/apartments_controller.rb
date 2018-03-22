@@ -1,11 +1,11 @@
 class ApartmentsController < ApplicationController
+  before_action :authenticate_user!
+  # load_and_authorize_resource
   before_action :set_apartment, only: [:show, :update, :destroy]
 
   # GET /apartments
   def index
     @apartments = Apartment.all
-
-    render json: @apartments
   end
 
   # GET /apartments/1
@@ -15,12 +15,11 @@ class ApartmentsController < ApplicationController
 
   # POST /apartments
   def create
-    @apartment = Apartment.new(apartment_params)
-
-    if @apartment.save
-      render json: @apartment, status: :created, location: @apartment
+    apartment = Apartment.create(apartment_params)
+    if apartment.valid?
+      render json: apartment
     else
-      render json: @apartment.errors, status: :unprocessable_entity
+      render json: apartment.errors, status: :unprocessable_entity
     end
   end
 
@@ -46,6 +45,6 @@ class ApartmentsController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def apartment_params
-      params.require(:apartment).permit(:street, :city, :state, :listing_price, :user_id)
+      params.require(:apartment).permit(:street, :city, :state, :listing_price, :user_id, :avatar_base)
     end
 end

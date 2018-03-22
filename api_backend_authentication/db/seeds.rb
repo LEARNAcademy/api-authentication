@@ -40,3 +40,32 @@ user_attributes = [
 user_attributes.each do |attributes|
   User.create(attributes)
 end
+
+
+apartment_attributes = [
+  {
+    street: '123 Main St.',
+    city: 'New York',
+    state: 'NY',
+    listing_price: '$600K',
+    user_id: 1
+  },
+  {
+    street: '456 Main St.',
+    city: 'New York',
+    state: 'NY',
+    listing_price: '$1 million',
+    user_id: 2
+  },
+  {
+    street: '789 Main St.',
+    city: 'New York',
+    state: 'NY',
+    listing_price: '$850K',
+    user_id: 5
+  }
+]
+
+apartment_attributes.each do |attributes|
+  Apartment.create(attributes)
+end
