@@ -9,19 +9,17 @@ import {
   Row
 } from 'react-bootstrap'
 
-class NewApt extends Component {
+class NewUser extends Component {
   constructor(props){
     super(props)
     this.state = {
       apiUrl: "http://localhost:3000",
-      apartments: [],
-      newAptSuccess: false,
+      newUserSuccess: false,
       form: {
-        street: '',
-        city: '',
-        state: '',
-        listing_price: '',
-        avatar_base: null
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: ''
       }
     }
   }
@@ -34,24 +32,6 @@ class NewApt extends Component {
     const formState = Object.assign({}, this.state.form)
     formState[event.target.name] = event.target.value
     this.setState({form: formState})
-  }
-
-  getBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
-  }
-
-  fileChangeHandler(event){
-    const file = event.target.files[0]
-    this.getBase64(file).then( (fileString) => {
-      const formState = Object.assign({}, this.state.form)
-      formState.avatar_base = fileString
-      this.setState({form: formState})
-    })
   }
 
   errorsFor(attribute){
@@ -80,11 +60,11 @@ class NewApt extends Component {
         <Row>
           <Col xs={6}>
             <FormGroup>
-              <ControlLabel id="street">Address</ControlLabel>
+              <ControlLabel id="name">Name</ControlLabel>
               <FormControl
                 type="text"
-                name="street"
-                value={this.state.form.street}
+                name="name"
+                value={this.state.form.name}
                 onChange={this.handleChange.bind(this)}
               />
             </FormGroup>
@@ -94,11 +74,11 @@ class NewApt extends Component {
         <Row>
           <Col xs={6}>
             <FormGroup>
-              <ControlLabel id="city">City</ControlLabel>
+              <ControlLabel id="email">Email</ControlLabel>
               <FormControl
                 type="text"
-                name="city"
-                value={this.state.form.city}
+                name="email"
+                value={this.state.form.email}
                 onChange={this.handleChange.bind(this)}
               />
             </FormGroup>
@@ -108,11 +88,11 @@ class NewApt extends Component {
         <Row>
           <Col xs={6}>
             <FormGroup>
-              <ControlLabel id="state">State</ControlLabel>
+              <ControlLabel id="password">Password</ControlLabel>
               <FormControl
                 type="text"
-                name="state"
-                value={this.state.form.state}
+                name="password"
+                value={this.state.form.password}
                 onChange={this.handleChange.bind(this)}
               />
             </FormGroup>
@@ -122,24 +102,12 @@ class NewApt extends Component {
         <Row>
           <Col xs={6}>
             <FormGroup>
-              <ControlLabel id="listing_price">Listing Price</ControlLabel>
+              <ControlLabel id="password_confirmation">Confirm Password</ControlLabel>
               <FormControl
                 type="text"
-                name="listing_price"
-                value={this.state.form.listing_price}
+                name="password_confirmation"
+                value={this.state.form.password_confirmation}
                 onChange={this.handleChange.bind(this)}
-              />
-            </FormGroup>
-          </Col>
-        </Row>
-
-        <Row>
-          <Col xs={6}>
-            <FormGroup>
-              <ControlLabel id="avatar">Image</ControlLabel>
-              <input
-                type="file"
-                onChange={this.fileChangeHandler.bind(this)}
               />
             </FormGroup>
           </Col>
@@ -150,7 +118,7 @@ class NewApt extends Component {
             <Button
               id="submit"
               onSubmit={this.handleSubmit.bind(this)}
-            >Create New Apartment Listing</Button>
+            >Create New User</Button>
           </Col>
         </Row>
       </form>
@@ -159,4 +127,4 @@ class NewApt extends Component {
 }
 
 
-export default NewApt
+export default NewUser

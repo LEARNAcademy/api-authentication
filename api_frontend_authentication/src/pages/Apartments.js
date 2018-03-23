@@ -1,39 +1,54 @@
 import React, { Component } from 'react';
+import NewApt from './NewApt'
 import {
-  Grid,
-  PageHeader,
   Col,
   ListGroup,
   ListGroupItem,
   Row
 } from 'react-bootstrap'
 
-class Apartment extends Component {
+class Apartments extends Component {
   constructor(props) {
-    super(props);
-
+    super(props)
     this.state = {
       apiUrl: "http://localhost:3000",
-      apartments: []
+      apartments: [],
+      errors: undefined,
     }
   }
 
   componentWillMount(){
     fetch(`${this.state.apiUrl}/apartments`)
-    .then((rawResponse) => {
-      return rawResponse.json()
+    .then((res)=>{
+      return res.json()
     })
-    .then((parsedResponse)=>{
-      this.setState({apartments: parsedResponse})
+    .then((res)=>{
+      console.log(res);
+
+      if (res.status != 200) {
+        this.setState({
+          errors: res,
+        })
+        return
+      }
+
+      this.setState({apartments: res})
     })
   }
 
   render() {
+    const { apartments, errors } = this.state
+
+    if (apartments.length == 0) {
+      return <h1>No Apartments Found</h1>
+    }
+
     return (
       <Row>
         <Col xs={12}>
+          {errors && JSON.stringify(errors)}
           <ListGroup>
-            {this.state.apartments.map((apartment, index)=>{
+            {apartments.map((apartment, index)=>{
               return(
                 <ListGroupItem
                   key={index}
@@ -56,4 +71,4 @@ class Apartment extends Component {
   }
 }
 
-export default Apartment
+export default Apartments

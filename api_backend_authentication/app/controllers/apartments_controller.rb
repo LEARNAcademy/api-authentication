@@ -1,11 +1,10 @@
 class ApartmentsController < ApplicationController
-  before_action :authenticate_user!
-  # load_and_authorize_resource
+  # before_action :authenticate_user!
   before_action :set_apartment, only: [:show, :update, :destroy]
 
   # GET /apartments
   def index
-    @apartments = Apartment.all
+    @apartments = Apartment.accessible_by(current_ability)
   end
 
   # GET /apartments/1

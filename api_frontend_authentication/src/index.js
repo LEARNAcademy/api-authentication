@@ -2,8 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './css/index.css';
 import App from './components/App';
-import Login from './components/Login';
-import Apartment from './pages/Apartment';
+import Login from './pages/Login';
+import NewUser from './pages/NewUser';
+import Apartments from './pages/Apartments';
 import NewApt from './pages/NewApt';
 
 import registerServiceWorker from './registerServiceWorker';
@@ -15,17 +16,22 @@ ReactDOM.render(
       <Route
         exact
         path='/'
-        component={Login}
-      />
-      <Route
-        exact
-        path="/info"
         component={App}
       />
       <Route
         exact
+        path="/login"
+        component={Login}
+      />
+      <Route
+        exact
+        path="/registration"
+        component={NewUser}
+      />
+      <Route
+        exact
         path="/apartments"
-        component={Apartment}
+        component={Apartments}
       />
       <Route
         exact
