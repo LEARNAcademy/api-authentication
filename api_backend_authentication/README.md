@@ -23,60 +23,105 @@ $ bundle install
 $ rails generate rspec:install
 ```
 
-## Create a user that stores a password
-<iframe src="https://player.vimeo.com/video/260582190" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-<p><a href="https://vimeo.com/260582190">has_secure_password</a> from <a href="https://vimeo.com/user2583318">M,M,&amp;M</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
 
-Next we will create a User model to store our login credentials and the other fields we'll want to store for users.  In this simple case, just their name.  Rails has some built in tools to help us with this.  Check out [has_secure_password](http://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html) to learn more about this feature of ActiveRecord.  
+## Adding Devise and JWT Authentication
 
+Add the devise-jwt gem to our Gemfile
 ```
-$ rails g resource User name:string email:string password_digest:string
-$ rails db:create
-$ rails db:migrate
+$ echo "gem 'devise-jwt', '~> 0.5.6'" >> Gemfile
+$ bundle install
+$ rails generate devise:install
 ```
 
-Next, we uncomment ```gem 'bcrypt', '~> 3.1.7'``` in the Gemfile, and ```bundle install``` again
+Next we need to add a secret key to Devise JWT so that it can generate secure passwords.  Add the following code after ```Devise.setup do |config|```
 
-### Testing has_secure_password
-Here are a few tests to get us started with has_secure_password:
-
-#### spec/models/user-spec.rb
-```ruby
-RSpec.describe User, type: :model do
-  it "should have secure password" do
-    user = User.create(name: 'Bob', password: 'secret')
-    expect(user.save).to be true
-    expect(user.authenticate('not-secret')).to be false
-  end
-
-  it "should fail on bad password confirmation" do
-    user = User.create(
-      name: 'Jill',
-      password: 'secret',
-      password_confirmation: 'something else'
-    )
-    expect(user.save).to be false
-  end
-
-  it "should succeed on good password confirmation" do
-    user = User.create(
-      name: 'Jill',
-      password: 'secret',
-      password_confirmation: 'secret'
-    )
-    expect(user.save).to be true
-  end
+```Ruby
+config.jwt do |jwt|
+  jwt.secret = -> { Rails.application.credentials.read } 
 end
-````
+```
 
-And to make those pass, all we need to do is add one line to the User model:
+We also need to disable the built in Rails mechanisms to store User credentials in the session.  Add a new file ```/config/initilizers/session_store.rb``` and place the following line inside:
 
-#### app/models/user.rb
-```ruby
+```Ruby
+Rails.application.config.session_store :disabled
+```
+
+Now we can generate a User Model with devise to store user credentials when they create accounts.  Run this from the command line:
+
+```
+$ rails generate devise User
+```
+
+If you open up ```/app/models/user.rb``` you'll now see that the Devise generated a User model configured to use devise.  We want to replace the following line:
+
+```Ruby
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+
+```
+
+with this:
+```Ruby
+  devise :database_authenticatable,
+         :jwt_authenticatable, 
+         jwt_revocation_strategy: self
+
+```
+
+We also need to add a RevocationStrategy to our Model.  This is used to log users out.  Each User record stores a unique string that is used to generate and check the tokens passed by the browser when the user is attempting to access private data.  If that unique string changes, the token won't match any longer, and the user will be logged out.  You can [read more about JWT revocation here](https://github.com/waiting-for-dev/devise-jwt#revocation-strategies).  Let's tell our User model what JWT revocation strategy we want to use.  Add the following line to your User model:
+```Ruby
+  include Devise::JWT::RevocationStrategies::JTIMatcher
+```
+
+So, your entire User Model should like like so:
+
+```Ruby
 class User < ApplicationRecord
-  has_secure_password # <-- This is the new line
+  include Devise::JWT::RevocationStrategies::JTIMatcher
+
+  # Include default devise modules. Others available are:
+  # :confirmable, :lockable, :timeoutable and :omniauthable
+  devise :database_authenticatable,
+         :jwt_authenticatable, 
+         jwt_revocation_strategy: self
+  has_secure_password 
 end
 ```
+
+And we need to add a new column to our ```users``` table to hold the token.  From the command line:
+
+```
+$ rails generate migration add_jti_matcher_to_users
+```
+
+And the contents of that migration:
+
+```Ruby
+class AddJtiToUsers < ActiveRecord::Migration[5.2]
+  def change
+    add_column :users, :jti, :string
+    add_index :users, :jti, unique: true
+  end
+end
+```
+
+Don't forget to run your migration after its setup.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Adding Knock and JWT Authentication
 We'll be using Knock and JWT for server side authentication.  You can read more about [Knock here](https://github.com/nsarno/knock).  JWT is an open standard used in many technologies: Ruby, Javascript, PHP, and Phyton for example.  Its [home page is here](https://jwt.io/).
@@ -149,10 +194,7 @@ RSpec.describe "Users", type: :request do
   describe "GET /users/:id" do
     let(:user){ User.create name: 'Bob', email: 'bob@bobber.com', password: 'secret'}
     let(:auth_header) do
-      token = Knock::AuthToken.new(payload: {sub: user.id}).token
-      {
-        'Authorization': "Bearer #{token}"
-      }
+      Devise::JWT::TestHelpers.auth_headers(headers, user)
     end
 
     #.... other user tests
@@ -193,7 +235,7 @@ RSpec.describe "Users", type: :request do
 end
 ```
 
-And here's the complete controller that to satisify these tests:
+And here's the complete controller that satisifies these tests:
 
 #### app/controllers/users_controller.rb
 ```ruby
