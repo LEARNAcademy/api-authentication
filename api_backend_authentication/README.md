@@ -1,7 +1,7 @@
 # Authentication
 
 ## Front to back communication
-User authentication requires the frontend, directly controlled by the user and the backend, controlled by the developer to agree that the user is who he/she claims to be, and that there has been no interference, malicious or otherwise, between the two sides of the system.  This is the fundamentals of web application security, we need to make sure we know who is communicating, and that the communication is real.  There are many strategies developers use to ensure security in their applications, and just as many opinions on the benefits of each.  Some developers opt to construct their own authentication strategy, while others depend on tried and true standard methods supported and maintained by the community as a whole.  Best practice is to use standardized and open authentication tools for web apps.  Open source tools such as Knock and JWT, the two that we'll be using in class, have many, many smart people driving their development, protecting their apps against bugs and security vulnerabilities.  Just as important, these tools are well maintained, assuring that when new security risks are discovered, the tools are patched quickly.  It is our responsibility, as users of these tools, to make sure that we stay current with the latest versions, keeping our own apps as safe as possible.
+User authentication requires the frontend, directly controlled by the user and the backend, controlled by the developer to agree that the user is who he/she claims to be, and that there has been no interference, malicious or otherwise, between the two sides of the system.  This is the fundamentals of web application security, we need to make sure we know who is communicating, and that the communication is real.  There are many strategies developers use to ensure security in their applications, and just as many opinions on the benefits of each.  Some developers opt to construct their own authentication strategy, while others depend on tried and true standard methods supported and maintained by the community as a whole.  Best practice is to use standardized and open authentication tools for web apps.  Open source tools such as Devise and JWT, the two that we'll be using in class, have many, many smart people driving their development, protecting their apps against bugs and security vulnerabilities.  Just as important, these tools are well maintained, assuring that when new security risks are discovered, the tools are patched quickly.  It is our responsibility, as users of these tools, to make sure that we stay current with the latest versions, keeping our own apps as safe as possible.
 
 ## How authentication works
 
@@ -23,7 +23,6 @@ $ bundle install
 $ rails generate rspec:install
 ```
 
-
 ## Adding Devise and JWT Authentication
 
 Add the devise-jwt gem to our Gemfile
@@ -33,18 +32,14 @@ $ bundle install
 $ rails generate devise:install
 ```
 
-Next we need to add a secret key to Devise JWT so that it can generate secure passwords.  Add the following code after ```Devise.setup do |config|```
+Next we need to add a secret key to Devise JWT so that it can generate secure passwords.  We also need to disable some features of Devise used in traditional web apps.  Add the following code after ```Devise.setup do |config|```
 
+#### ```/config/initizers/devise.rb```
 ```Ruby
 config.jwt do |jwt|
-  jwt.secret = -> { Rails.application.credentials.read } 
+  jwt.secret = "<something super secret, or use the secret key from this file>"
 end
-```
-
-We also need to disable the built in Rails mechanisms to store User credentials in the session.  Add a new file ```/config/initilizers/session_store.rb``` and place the following line inside:
-
-```Ruby
-Rails.application.config.session_store :disabled
+config.navigational_formats = [] #<- Disables flash messages 
 ```
 
 Now we can generate a User Model with devise to store user credentials when they create accounts.  Run this from the command line:
@@ -64,6 +59,8 @@ If you open up ```/app/models/user.rb``` you'll now see that the Devise generate
 with this:
 ```Ruby
   devise :database_authenticatable,
+         :registerable,
+         :validatable,
          :jwt_authenticatable, 
          jwt_revocation_strategy: self
 
@@ -83,9 +80,10 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable,
+         :registerable,
+         :validatable,
          :jwt_authenticatable, 
          jwt_revocation_strategy: self
-  has_secure_password 
 end
 ```
 
@@ -108,66 +106,50 @@ end
 
 Don't forget to run your migration after its setup.
 
+### Cors
+Rails now comes with Cors support baked right in, but we need to enable it.  First, uncomment this line in your Gemfile:  ```gem 'rack-cors'```.  Then, check in ```/config/initilizers/cors.rb``` and comment in this code to set it up.  Make sure and re-run ```bundle install``` afterwards.  We also need to allow the proper 'origin' for our requests to originate from.  In our case, we'll allow it from anyone.  In a production app, you would only allow the domains you know are hosting your website.
 
+#### ```/config/initilizers/cors.rb```
+```Ruby
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins '*' # <- We change this to allow requests from anyone
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Adding Knock and JWT Authentication
-We'll be using Knock and JWT for server side authentication.  You can read more about [Knock here](https://github.com/nsarno/knock).  JWT is an open standard used in many technologies: Ruby, Javascript, PHP, and Phyton for example.  Its [home page is here](https://jwt.io/).
-
-<iframe src="https://player.vimeo.com/video/260589518" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-<p><a href="https://vimeo.com/260589518">jwt-knock</a> from <a href="https://vimeo.com/user2583318">M,M,&amp;M</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
-
-## Install Knock
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'knock'
-```
-
-Then execute:
-
-    $ bundle install
-
-Finally, run the install generator:
-
-    $ rails generate knock:install
-
-It will create the following initializer `config/initializers/knock.rb`.
-This file contains all the informations about the existing configuration options.
-
-Then, install a controller to provide tokens for users logging in.
-
-    $ rails generate knock:token_controller user
-
-This will generate the controller `user_token_controller.rb` and add the required route to your `config/routes.rb` file.
-
-### Usage
-Include the `Knock::Authenticable` module in your `ApplicationController`
-
-```ruby
-class ApplicationController < ActionController::API
-  include Knock::Authenticable
+    resource '*',
+      headers: :any,
+      expose: :authorization, # <- Add this line to expose our auth header
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+  end
 end
 ```
 
-You can now protect your resources by calling `authenticate_user` as a before_action
-inside your controllers:
+### Responding with JSON
+There is a bit of config to do so that Devise knows that we should respond with JSON to all requests coming into the server.  In ```/app/controllers/application_controller.rb```:
+
+####```/app/controllers/application_controller```
+```Ruby
+class ApplicationController < ActionController::API
+  respond_to :json  # <- Add this line
+  include ActionController::MimeResponds # <- Add this line
+end
+```
+
+And, in our routes file, we need to update the Devise routes to respond with JSON:
+####```/config/routes.rb```
+```Ruby
+devise_for :users, defaults: { format: :json }
+```
+
+### Usage
+
+You can now protect your resources by calling `authenticate_user!` as a before_action
+inside your controllers.  Any methods that you want to assure a user is logged in to access will pass this authentication step if the user is logged in, and the user will receive a failing response if they don't pass a proper token.
 
 ```ruby
+
+# Just an example!
 class SecuredController < ApplicationController
-  before_action :authenticate_user
+  before_action :authenticate_user!
 
   def index
     # etc...
@@ -179,94 +161,82 @@ end
 
 ## Registering New Users
 
-<iframe src="https://player.vimeo.com/video/260590816" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-<p><a href="https://vimeo.com/260590816">jwt-rails-registration</a> from <a href="https://vimeo.com/user2583318">M,M,&amp;M</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
-
 If your application allows registration, you'll want to provide an endpoint that accepts at least new user login credentials like email and password, which creates a new user and returns a token so the user can submit subsequent requests.
 
-We'll use the Users Controller for the endpoint.  Here are the tests:
+Here are some tests to assure that the Devise controller is creating a user for us, and returning the token properly in the header.  Note that we didn't write any controller code at all to do this.  Devise comes equiped to create users for us, log them in, and log them out right out of the box!  Of course, you can customize the behavior Devise provides as much as you like.  [Read More](https://github.com/plataformatec/devise#controller-filters-and-helpers) on Devise's home page.
 
 #### spec/requests/users_spec.rb
 ```ruby
 require 'rails_helper'
+require 'devise/jwt/test_helpers'
 
 RSpec.describe "Users", type: :request do
-  describe "GET /users/:id" do
-    let(:user){ User.create name: 'Bob', email: 'bob@bobber.com', password: 'secret'}
-    let(:auth_header) do
-      Devise::JWT::TestHelpers.auth_headers(headers, user)
-    end
-
-    #.... other user tests
-
+  describe "POST /users" do
     it "creates a user" do
       payload = {
         user: {
-          name: 'Jill',
           email: 'jill@jiller.com',
           password: 'secret',
           password_confirmation: 'secret'
         }
       }
 
-      post users_path, params: payload
+      post user_registration_path, params: payload
       expect(response).to have_http_status(201)
-      json = JSON.parse(response.body)
-      expect(json["user"]["name"]).to eq "Jill"
-      expect(json["jwt"]).to_not be_blank
+      expect(response.headers["Authorization"]).to_not be_blank
     end
 
     it "should return errors when fails to create" do
       payload = {
         user: {
-          name: 'Jill',
           email: 'jill@jiller.com',
           password: 'secret',
           password_confirmation: 'wrong password'
         }
       }
 
-      post users_path, params: payload
+      post user_registration_path, params: payload
       expect(response).to have_http_status(422)
-      json = JSON.parse(response.body)
-      expect(json["errors"]["password_confirmation"]).to_not be_blank
+      expect(response.headers["Authorization"]).to be_blank
     end
   end
 end
 ```
 
-And here's the complete controller that satisifies these tests:
+Run those specs, and if everything is configured correctly for Devise, they should pass.
 
-#### app/controllers/users_controller.rb
-```ruby
-class UsersController < ApplicationController
-  before_action :authenticate_user, only: :show
 
-  def show
-    user = User.find params[:id]
-    render json: user
-  end
+### Signing In
 
-  def create
-    user = User.new(user_params)
-    if user.save
-      token = Knock::AuthToken.new(payload: { sub: user.id }).token
+Next we'll write a few tests to make sure that users who have an account can sign in with their username and password.  Again, Devise handles all of this for us, so we just need to write some tests to exercise the code that Devise provides. (Note: in a production app, you wouldn't normally write tests for code that you didn't write yourself, into your application.  We're doing it here to get a better understanding of Devise and JWT.)
+
+#### ```/spec/requests/sign_in_spec.rb```
+```Ruby
+require 'rails_helper'
+require 'devise/jwt/test_helpers'
+
+RSpec.describe "Users", type: :request do
+  describe "GET /users/sign_in" do
+    let!(:user){ User.create(email: 'jill@jiller.com', password: 'secret') }
+    it "logs in a user" do
       payload = {
-        user: user,
-        jwt: token
+        user: {
+          email: 'jill@jiller.com',
+          password: 'secret'
+        }
       }
-      render json: payload, status: 201
-    else
-      render json: {errors: user.errors}, status: 422
-    end
-  end
 
-  private
-  def user_params
-    params.require(:user).permit(:email, :name, :password, :password_confirmation)
+      post user_session_path, params: payload
+      expect(response).to have_http_status(201)
+      expect(response.headers["Authorization"]).to_not be_blank
+    end
   end
 end
 ```
+
+## That's It!
+That's all there is to a basic API backend with JWT authentication.  Make sure to run those specs one more time, and when they are all green,  you're ready to build a front end to your application.
+
 
 ## Challenge
 # Full Stack Apartment App 

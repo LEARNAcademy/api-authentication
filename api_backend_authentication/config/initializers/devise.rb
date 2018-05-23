@@ -11,8 +11,9 @@ Devise.setup do |config|
   # config.secret_key = '196083a763689338e6f8307d0c98d3436c609b8fe8ce6f4f26426fa8ecd3d067f40428bb2d3a239d533f88bd9efdffba6d630fa2e5ae52fb74fb11ba1a458391'
   #
   config.jwt do |jwt|
-    jwt.secret = -> { Rails.application.credentials.read } 
+    jwt.secret = '196083a763689338e6f8307d0c98d3436c609b8fe8ce6f4f26426fa8ecd3d067f40428bb2d3a239d533f88bd9efdffba6d630fa2e5ae52fb74fb11ba1a458391'
   end
+  config.navigational_formats = []
   
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
