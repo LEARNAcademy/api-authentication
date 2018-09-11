@@ -23,6 +23,15 @@ $ bundle install
 $ rails generate rspec:install
 ```
 
+### Git Commit
+
+We have finished the basic setup of our app. This would be a good time to create a new repo on github and commit our changes. You could run something like this: 
+
+```
+$ git add .
+$ git commit -m "initial commit and set up tests"
+```
+
 ## Adding Devise and JWT Authentication
 
 Add the devise-jwt gem to our Gemfile
@@ -109,6 +118,15 @@ end
 
 Don't forget to run your migration after its setup.
 
+### Git Commit
+
+We have finished adding Devise with JWT and a Devise User. This would be a good time to commit our changes. You could run something like this: 
+
+```
+$ git add .
+$ git commit -m "adds Devise with JWT and Devise User model"
+```
+
 ### Cors
 Rails now comes with Cors support baked right in, but we need to enable it.  First, uncomment this line in your Gemfile:  ```gem 'rack-cors'```.  Then, check in ```/config/initilizers/cors.rb``` and comment in this code to set it up.  Make sure and re-run ```bundle install``` afterwards.  We also need to allow the proper 'origin' for our requests to originate from.  In our case, we'll allow it from anyone.  In a production app, you would only allow the domains you know are hosting your website.
 
@@ -126,6 +144,15 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
 end
 ```
 
+### Git Commit
+
+We have finished adding CORS. This would be a good time to commit our changes. You could run something like this: 
+
+```
+$ git add .
+$ git commit -m "adds CORS"
+```
+
 ### Responding with JSON
 There is a bit of config to do so that Devise knows that we should respond with JSON to all requests coming into the server.  In ```/app/controllers/application_controller.rb```:
 
@@ -137,11 +164,22 @@ class ApplicationController < ActionController::API
 end
 ```
 
-And, in our routes file, we need to update the Devise routes to respond with JSON:
+And, in our routes file, we need to add the default JSON format to the devise route. You should only have one line of devise routes:
 ####```/config/routes.rb```
 ```Ruby
 devise_for :users, defaults: { format: :json }
 ```
+
+
+### Git Commit
+
+We have finished setting up Devise to work with JSON. This would be a good time to commit our changes. You could run something like this: 
+
+```
+$ git add .
+$ git commit -m "makes Devise work with JSON"
+```
+
 
 ### Usage
 
@@ -168,7 +206,10 @@ If your application allows registration, you'll want to provide an endpoint that
 
 Here are some tests to assure that the Devise controller is creating a user for us, and returning the token properly in the header.  Note that we didn't write any controller code at all to do this.  Devise comes equiped to create users for us, log them in, and log them out right out of the box!  Of course, you can customize the behavior Devise provides as much as you like.  [Read More](https://github.com/plataformatec/devise#controller-filters-and-helpers) on Devise's home page.
 
-#### spec/requests/users_spec.rb
+#### spec/requests/registration_spec.rb
+
+** You may need to create the requests folder in spec and add the registration_spec file.
+
 ```ruby
 require 'rails_helper'
 require 'devise/jwt/test_helpers'
@@ -206,7 +247,7 @@ RSpec.describe "Users", type: :request do
 end
 ```
 
-Run those specs, and if everything is configured correctly for Devise, they should pass.
+Run those tests, and if everything is configured correctly for Devise, they should pass. You will probably have pending tests as well, but as long as no tests fail you are good to go. 
 
 
 ### Signing In
@@ -239,6 +280,17 @@ end
 
 ## That's It!
 That's all there is to a basic API backend with JWT authentication.  Make sure to run those specs one more time, and when they are all green,  you're ready to build a front end to your application.
+
+
+### Git Commit
+
+We have finished setting up our Devise tests. This would be a good time to commit our changes. You could run something like this: 
+
+```
+$ git add .
+$ git commit -m "tests Devise registration and sign-in flows"
+```
+
 
 
 ## Challenge
