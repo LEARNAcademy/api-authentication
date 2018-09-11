@@ -32,12 +32,15 @@ $ bundle install
 $ rails generate devise:install
 ```
 
-Next we need to add a secret key to Devise JWT so that it can generate secure passwords.  We also need to disable some features of Devise used in traditional web apps.  Add the following code after ```Devise.setup do |config|```
+Next we need to add a secret key to Devise JWT so that it can generate secure passwords.  We also need to disable some features of Devise used in traditional web apps. 
 
 #### ```/config/initizers/devise.rb```
+
+Add the following code after ```Devise.setup do |config|``` in ```/config/initizers/devise.rb```
+
 ```Ruby
 config.jwt do |jwt|
-  jwt.secret = "<something super secret, or use the secret key from this file>"
+  jwt.secret = "<Find the secret key in this file and copy it here>"
 end
 config.navigational_formats = [] #<- Disables flash messages 
 ```
