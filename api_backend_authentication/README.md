@@ -51,7 +51,7 @@ Now we can generate a User Model with devise to store user credentials when they
 $ rails generate devise User
 ```
 
-If you open up ```/app/models/user.rb``` you'll now see that the Devise generated a User model configured to use devise.  We want to replace the following line:
+If you open up ```/app/models/user.rb``` you'll now see that Devise generated a User model configured to use devise.  We want to replace the following line:
 
 ```Ruby
   devise :database_authenticatable, :registerable,
@@ -96,7 +96,7 @@ And we need to add a new column to our ```users``` table to hold the token.  Fro
 $ rails generate migration add_jti_matcher_to_users
 ```
 
-And the contents of that migration:
+Find the newly created migration file in the db folder of your app and add this code:
 
 ```Ruby
 class AddJtiToUsers < ActiveRecord::Migration[5.2]
