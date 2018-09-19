@@ -16,7 +16,7 @@ Let's take a look at how authentication works on the server.  The backend genera
 For this app, we'll use the now familiar ```-api``` and ```-T``` flags to setup it up, adding in Rspec for testing.  
 
 ```
-$ rails new api_backend_authentication --api -T
+$ rails new api_backend_authentication --api -T --database=postgres
 $ cd api_backend_authentication
 $ echo "gem 'rspec-rails', groups: [:development, :test]" >> Gemfile
 $ bundle install
