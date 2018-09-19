@@ -108,7 +108,7 @@ $ rails generate migration add_jti_matcher_to_users
 Find the newly created migration file in the db folder of your app and add this code:
 
 ```Ruby
-class AddJtiToUsers < ActiveRecord::Migration[5.2]
+class AddJtiMatcherToUsers < ActiveRecord::Migration[5.2]
   def change
     add_column :users, :jti, :string
     add_index :users, :jti, unique: true
